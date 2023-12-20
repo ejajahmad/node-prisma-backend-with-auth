@@ -1,0 +1,363 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model client {
+  id          String    @id @default(uuid())
+  cv_id       String    @unique
+  language_id String
+  languages   languages @relation(fields: [language_id], references: [id])
+}
+
+model partner {
+  id                    String                  @id @default(uuid())
+  is_university         Boolean?                @default(false)
+  telephone             String?
+  has_profile           Boolean?                @default(true)
+  cv_university_id      Int?                    @unique
+  lsq_id                String?
+  lsq_number            Int?
+  profile_views         Int?                    @default(0)
+  slug                  String                  @unique
+  name                  String                  @db.VarChar(255)
+  email                 String                  @unique(map: "email") @db.VarChar(255)
+  mobile                String?                 @unique(map: "mobile") @db.VarChar(20)
+  gender                String                  @default("Not Specified") @db.VarChar(20)
+  is_active             Boolean                 @default(true)
+  is_verified           Boolean                 @default(false)
+  fee                   Int                     @default(1499)
+  slot_time             Int                     @default(30)
+  timings               String                  @db.LongText()
+  timing_code           String?                 @db.LongText()
+  date_of_joining       DateTime?               @db.DateTime()
+  updated_at            DateTime                @default(now()) @updatedAt @db.Timestamp(0)
+  created_at            DateTime                @default(now()) @db.Timestamp(0)
+  otp                   Int?
+  designation           String?
+  experience            Int?
+  admissions_done       Int?
+  avg_rating            Float?                  @default(0)
+  website_url           String?
+  profile_pic           String?
+  about                 String?                 @db.LongText()
+  team_leader_id        String?
+  consultation          consultation[]
+  review                review[]
+  partner_qualification partner_qualification[]
+  partner_languages     partner_languages[]
+  team_leader           team_leader?            @relation(fields: [team_leader_id], references: [id])
+  partner_report        partner_report[]
+  partner_tip           partner_tip[]
+  partner_payment_info  partner_payment_info[]
+  payment_link          payment_link[]
+  client_review         client_review[]
+  partner_skill         partner_skill[]
+  partner_company       partner_company[]
+  partner_sector        partner_sector[]
+}
+
+model partner_report {
+  id          String   @id @default(uuid())
+  partner_id  String
+  client_id   String
+  reason      String
+  description String?  @db.LongText()
+  updated_at  DateTime @default(now()) @updatedAt @db.Timestamp(0)
+  created_at  DateTime @default(now()) @db.Timestamp(0)
+  partner     partner  @relation(fields: [partner_id], references: [id], onDelete: Cascade)
+}
+
+model partner_qualification {
+  id         String   @id @default(uuid())
+  partner_id String
+  degree     String
+  college    String
+  from_date  String
+  to_date    String
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamp(0)
+  created_at DateTime @default(now()) @db.Timestamp(0)
+  partner    partner  @relation(fields: [partner_id], references: [id], onDelete: Cascade)
+}
+
+model partner_payment_info {
+  id         String   @id @default(uuid())
+  partner_id String
+  account_no String
+  ifsc_code  String
+  bank_name  String
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamp(0)
+  created_at DateTime @default(now()) @db.Timestamp(0)
+  partner    partner  @relation(fields: [partner_id], references: [id], onDelete: Cascade)
+}
+
+model partner_languages {
+  id          String    @id @default(uuid())
+  partner_id  String
+  language_id String
+  updated_at  DateTime  @default(now()) @updatedAt @db.Timestamp(0)
+  created_at  DateTime  @default(now()) @db.Timestamp(0)
+  partner     partner   @relation(fields: [partner_id], references: [id], onDelete: Cascade)
+  languages   languages @relation(fields: [language_id], references: [id], onDelete: Cascade)
+}
+
+model partner_skill {
+  id         String   @id @default(uuid())
+  partner_id String
+  skill_id   String
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamp(0)
+  created_at DateTime @default(now()) @db.Timestamp(0)
+  partner    partner  @relation(fields: [partner_id], references: [id], onDelete: Cascade)
+  skill      skill    @relation(fields: [skill_id], references: [id], onDelete: Cascade)
+}
+
+model partner_company {
+  id         String   @id @default(uuid())
+  partner_id String
+  company_id String
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamp(0)
+  created_at DateTime @default(now()) @db.Timestamp(0)
+  partner    partner  @relation(fields: [partner_id], references: [id], onDelete: Cascade)
+  company    company  @relation(fields: [company_id], references: [id], onDelete: Cascade)
+}
+
+model partner_sector {
+  id         String   @id @default(uuid())
+  partner_id String
+  sector_id  String
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamp(0)
+  created_at DateTime @default(now()) @db.Timestamp(0)
+  partner    partner  @relation(fields: [partner_id], references: [id], onDelete: Cascade)
+  sector     sector   @relation(fields: [sector_id], references: [id], onDelete: Cascade)
+}
+
+model team_leader {
+  id         String    @id @default(uuid())
+  name       String?
+  email      String    @unique(map: "email") @db.VarChar(255)
+  mobile     String?   @db.VarChar(20)
+  updated_at DateTime  @default(now()) @updatedAt @db.Timestamp(0)
+  created_at DateTime  @default(now()) @db.Timestamp(0)
+  partner    partner[]
+}
+
+model languages {
+  id                    String              @id @default(uuid())
+  name                  String              @unique
+  google_translate_code String?
+  updated_at            DateTime            @default(now()) @updatedAt @db.Timestamp(0)
+  created_at            DateTime            @default(now()) @db.Timestamp(0)
+  partner_languages     partner_languages[]
+  client                client[]
+}
+
+model consultation {
+  id                    String                  @id @default(uuid())
+  partner_id            String
+  client_id             String
+  transaction_id        String?
+  amount                Int?
+  is_refunded           Boolean                 @default(false)
+  start_time            DateTime                @db.Timestamp(0)
+  is_finished           Boolean                 @default(false)
+  finished_at           DateTime?               @db.Timestamp(0)
+  withdrew              Boolean                 @default(false)
+  withdrew_at           DateTime?               @db.Timestamp(0)
+  course_id             Int?
+  specialization_id     Int?
+  updated_at            DateTime                @default(now()) @updatedAt @db.Timestamp(0)
+  created_at            DateTime                @default(now()) @db.Timestamp(0)
+  partner               partner                 @relation(fields: [partner_id], references: [id], onDelete: Cascade)
+  consultation_messages consultation_messages[]
+
+  @@index([partner_id], map: "consultation_partner_id_fkey")
+}
+
+model consultation_messages {
+  id              String       @id @default(uuid())
+  message         String       @db.LongText
+  translated_text String?      @db.LongText
+  translated_code String?
+  timestamp       DateTime     @db.Timestamp(0)
+  user_type       String
+  media           String       @db.LongText
+  unread          Int          @db.TinyInt
+  consultation_id String
+  updated_at      DateTime     @default(now()) @updatedAt @db.Timestamp(0)
+  created_at      DateTime     @default(now()) @db.Timestamp(0)
+  consultation    consultation @relation(fields: [consultation_id], references: [id], onDelete: Cascade)
+
+  @@index([consultation_id], map: "consultation_messages_consultation_id_fkey")
+}
+
+model review {
+  id             String    @id @default(uuid())
+  client_id      String
+  partner_slug   String
+  rating         Int
+  title          String
+  review_details String    @db.LongText
+  reply          String?
+  upvotes        Int       @default(0)
+  downvotes      Int       @default(0)
+  reports        Int       @default(0)
+  published      Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  repliedAt      DateTime?
+  partner        partner   @relation(fields: [partner_slug], references: [slug])
+
+  @@index([partner_slug], map: "review_partner_id_fkey")
+}
+
+model partner_tip {
+  id             String   @id @default(uuid())
+  client_id      String
+  partner_id     String
+  transaction_id String?
+  tip            Int
+  note           String?  @db.LongText()
+  updated_at     DateTime @default(now()) @updatedAt @db.Timestamp(0)
+  created_at     DateTime @default(now()) @db.Timestamp(0)
+  partner        partner  @relation(fields: [partner_id], references: [id], onDelete: Cascade)
+}
+
+model client_review {
+  id         String   @id @default(uuid())
+  client_id  String
+  partner_id String
+  rating     Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  partner    partner  @relation(fields: [partner_id], references: [id], onDelete: Cascade)
+}
+
+model leadsquared_details {
+  id         String   @id @default(uuid())
+  lsq_number Int
+  access_key String
+  secret_key String
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamp(0)
+  created_at DateTime @default(now()) @db.Timestamp(0)
+}
+
+model pending_leadsquared_api_requests {
+  id         String   @id @default(uuid())
+  cvuid      String
+  type       String
+  url        String
+  payload    String   @db.LongText()
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamp(0)
+  created_at DateTime @default(now()) @db.Timestamp(0)
+}
+
+model transaction_record {
+  id             String   @id @default(uuid())
+  user_id        String   @db.VarChar(255)
+  transaction_id String?
+  status_id      String?
+  type           String
+  amount         Int?
+  updated_at     DateTime @default(now()) @updatedAt @db.Timestamp(0)
+  created_at     DateTime @default(now()) @db.Timestamp(0)
+
+  status transaction_record_status? @relation(fields: [status_id], references: [id])
+}
+
+model transaction_record_status {
+  id                 String               @id @default(uuid())
+  status             String
+  updated_at         DateTime             @default(now()) @updatedAt @db.Timestamp(0)
+  created_at         DateTime             @default(now()) @db.Timestamp(0)
+  transaction_record transaction_record[]
+}
+
+model payment_link {
+  id         String   @id @default(uuid())
+  partner_id String
+  link       String
+  amount     Int
+  is_used    Boolean  @default(false)
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamp(0)
+  created_at DateTime @default(now()) @db.Timestamp(0)
+  partner    partner  @relation(fields: [partner_id], references: [id], onDelete: Cascade)
+}
+
+model notification {
+  id         String   @id @default(uuid())
+  user_id    String
+  title      String
+  message    String
+  type       String
+  is_read    Boolean  @default(false)
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamp(0)
+  created_at DateTime @default(now()) @db.Timestamp(0)
+}
+
+model all_banks {
+  id         String   @id @default(uuid())
+  name       String
+  code       String
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamp(0)
+  created_at DateTime @default(now()) @db.Timestamp(0)
+}
+
+model skill {
+  id            String          @id @default(uuid())
+  name          String
+  logo_url      String?
+  updated_at    DateTime        @default(now()) @updatedAt @db.Timestamp(0)
+  created_at    DateTime        @default(now()) @db.Timestamp(0)
+  partner_skill partner_skill[]
+}
+
+model company {
+  id              String            @id @default(uuid())
+  name            String
+  logo_url        String?
+  updated_at      DateTime          @default(now()) @updatedAt @db.Timestamp(0)
+  created_at      DateTime          @default(now()) @db.Timestamp(0)
+  partner_company partner_company[]
+}
+
+model sector {
+  id             String           @id @default(uuid())
+  name           String
+  logo_url       String?
+  updated_at     DateTime         @default(now()) @updatedAt @db.Timestamp(0)
+  created_at     DateTime         @default(now()) @db.Timestamp(0)
+  partner_sector partner_sector[]
+}
+
+model community_post {
+  id                     String                   @id @default(uuid())
+  user_id                String
+  title                  String
+  slug                   String                   @unique
+  content                String                   @db.LongText()
+  keywords               String                   @db.LongText()
+  is_answered            Boolean                  @default(false)
+  is_published           Boolean                  @default(false)
+  updated_at             DateTime                 @default(now()) @updatedAt @db.Timestamp(0)
+  created_at             DateTime                 @default(now()) @db.Timestamp(0)
+  community_post_comment community_post_comment[]
+}
+
+model community_post_comment {
+  id                String          @id @default(uuid())
+  user_id           String
+  post_id           String
+  user_type         String          @default("CLIENT")
+  content           String          @db.LongText()
+  is_answer         Boolean         @default(false)
+  is_published      Boolean         @default(false)
+  parent_comment_id String?
+  updated_at        DateTime        @default(now()) @updatedAt @db.Timestamp(0)
+  created_at        DateTime        @default(now()) @db.Timestamp(0)
+  community_post    community_post? @relation(fields: [community_postId], references: [id])
+  community_postId  String?
+}
